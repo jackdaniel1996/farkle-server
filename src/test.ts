@@ -1,26 +1,26 @@
-import { LobbyManager } from "./lobby/lobby.manager";
+// import { LobbyManager } from "./lobby/lobby.manager";
 
 
-const manager = new LobbyManager();
+// const manager = new LobbyManager();
 
 
-const lobby = manager.createLobby(
-    "Farkle Abend",
-    "1234",
-    "Daniel"
-);
+// const lobby = manager.createLobby(
+//     "Farkle Abend",
+//     "1234",
+//     "Daniel"
+// );
 
 
-console.log(lobby);
+// console.log(lobby);
 
 
-manager.joinLobby(
-    lobby.id,
-    "1234",
-    "Max"
-);
+// manager.joinLobby(
+//     lobby.lobby.lobbyId,
+//     "1234",
+//     "Max"
+// );
 
 
-console.log(
-    manager.getLobby(lobby.id)
-);
+// console.log(
+//     manager.getLobby(lobby.lobby.lobbyId)
+// );

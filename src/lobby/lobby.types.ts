@@ -1,8 +1,8 @@
 import { GameEngine } from "../game/game.engine";
 
 export interface Lobby {
-    id: string;
-    name: string;
+    lobbyId: string;
+    lobbyName: string;
     password: string;
 
     players: Player[];

@@ -17,9 +17,12 @@ router.post("/create", (req, res) => {
     );
 
     res.json({
-        lobbyId: lobby.id,
-        lobbyName: lobby.name,
-        players: lobby.players
+        lobby: {
+            lobbyId: lobby.lobby.lobbyId,
+            lobbyName: lobby.lobby.lobbyName,
+            players: lobby.lobby.players,
+        },
+        player: lobby.player,
     });
 });
 
@@ -27,20 +30,25 @@ router.post("/join", (req, res) => {
     const {
         lobbyId,
         username,
-        password
+        password,
+        socketId,
     } = req.body;
 
     try {
-
         const lobby = lobbyManager.joinLobby(
             lobbyId,
             password,
-            username
+            username,
+            socketId
         );
 
         res.json({
-            lobbyId: lobby.id,
-            players: lobby.players
+            lobby: {
+                lobbyId: lobby.lobby.lobbyId,
+                lobbyName: lobby.lobby.lobbyName,
+                players: lobby.lobby.players,
+            },
+            player: lobby.player,
         });
 
     } catch(error) {

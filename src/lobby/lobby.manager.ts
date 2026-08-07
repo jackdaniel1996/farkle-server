@@ -8,7 +8,7 @@ export class LobbyManager {
         name: string,
         password: string,
         username: string
-    ): Lobby {
+    ): { lobby: Lobby; player: Player } {
         const lobbyId = this.generateId();
 
         const player: Player = {
@@ -17,12 +17,10 @@ export class LobbyManager {
         };
 
         const lobby: Lobby = {
-            id: lobbyId,
-            name,
+            lobbyId: lobbyId,
+            lobbyName: name,
             password,
-            players: [
-                player
-            ],
+            players: [],
             game: new GameEngine()
         };
 
@@ -31,7 +29,7 @@ export class LobbyManager {
             lobby
         );
 
-        return lobby;
+        return { lobby, player };
     }
 
 
@@ -42,8 +40,9 @@ export class LobbyManager {
     joinLobby(
         lobbyId: string,
         password: string,
-        username: string
-    ): Lobby {
+        username: string,
+        socketId: string,
+    ): { lobby: Lobby; player: Player } {
         const lobby = this.lobbies.get(lobbyId);
 
         if (!lobby) {
@@ -55,13 +54,35 @@ export class LobbyManager {
         }
 
         const player: Player = {
-            id: crypto.randomUUID(),
-            username
+            // id: crypto.randomUUID(),
+            id: socketId,
+            username,
         };
 
         lobby.players.push(player);
 
-        return lobby;
+        return { lobby, player };
+    }
+
+    leaveLobby(playerId: string) {
+        for (const lobby of this.lobbies.values()) {
+            const index = lobby.players.findIndex(
+                player => player.id === playerId
+            );
+
+            if (index !== -1) {
+                lobby.players.splice(index, 1);
+
+                // Lobby löschen, wenn sie leer ist
+                if (lobby.players.length === 0) {
+                    this.lobbies.delete(lobby.lobbyId);
+                }
+
+                return lobby;
+            }
+        }
+
+        return null;
     }
 
     private generateId(): string {
