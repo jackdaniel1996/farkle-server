@@ -13,7 +13,9 @@ export class LobbyManager {
 
         const player: Player = {
             id: crypto.randomUUID(),
-            username
+            socketId: '',
+            username,
+            connected: false,
         };
 
         const lobby: Lobby = {
@@ -42,6 +44,7 @@ export class LobbyManager {
         password: string,
         username: string,
         socketId: string,
+        playerId?: string | undefined
     ): { lobby: Lobby; player: Player } {
         const lobby = this.lobbies.get(lobbyId);
 
@@ -53,36 +56,72 @@ export class LobbyManager {
             throw new Error("Falsches Passwort");
         }
 
-        const player: Player = {
-            // id: crypto.randomUUID(),
-            id: socketId,
-            username,
-        };
+        const existingPlayer = playerId ? lobby.players.find(p => p.id === playerId) : undefined;
+        console.log('existingPlayer', existingPlayer);
 
-        lobby.players.push(player);
+        if (existingPlayer) {
+            // Reconnect
+            existingPlayer.connected = true;
+            existingPlayer.socketId = socketId;
+            existingPlayer.username = username;
 
-        return { lobby, player };
+            return {
+                lobby,
+                player: existingPlayer
+            };
+        } else {
+            // create id when new player joins lobby
+            let player: Player = {
+                id: playerId ? playerId : crypto.randomUUID(),
+                socketId: socketId,
+                username,
+                connected: true
+            };
+            lobby.players.push(player);
+            console.log('newPlayerJoin', player, playerId);
+
+            return { lobby, player };
+        }
     }
 
-    leaveLobby(playerId: string) {
+    disconnectPlayer(socketId: string): Lobby | null {
         for (const lobby of this.lobbies.values()) {
-            const index = lobby.players.findIndex(
-                player => player.id === playerId
+
+            const player = lobby.players.find(
+                player => player.socketId === socketId
             );
 
-            if (index !== -1) {
-                lobby.players.splice(index, 1);
-
-                // Lobby löschen, wenn sie leer ist
-                if (lobby.players.length === 0) {
-                    this.lobbies.delete(lobby.lobbyId);
-                }
-
-                return lobby;
+            if (!player) {
+                continue;
             }
+
+            player.connected = false;
+            player.socketId = undefined;
+
+            this.deleteLobbyIn5Min(lobby.lobbyId);
+
+            return lobby;
         }
 
         return null;
+    }
+
+    deleteLobbyIn5Min(lobbyId: string) {
+        const fiveMinInMs = 5 * 60 * 1000;
+
+        setTimeout(() => {
+            const lobby = this.lobbies.get(lobbyId);
+
+            if (!lobby) {
+                return;
+            }
+
+            const connectedPlayers = lobby.players.filter(player => player.connected);
+
+            if (connectedPlayers.length === 0) {
+                this.lobbies.delete(lobbyId);
+            }
+        }, fiveMinInMs);
     }
 
     private generateId(): string {

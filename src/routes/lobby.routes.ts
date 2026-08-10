@@ -10,7 +10,7 @@ router.post("/create", (req, res) => {
         password
     } = req.body;
 
-    const lobby = lobbyManager.createLobby(
+    const l = lobbyManager.createLobby(
         lobbyName,
         password,
         username
@@ -18,48 +18,12 @@ router.post("/create", (req, res) => {
 
     res.json({
         lobby: {
-            lobbyId: lobby.lobby.lobbyId,
-            lobbyName: lobby.lobby.lobbyName,
-            players: lobby.lobby.players,
+            lobbyId: l.lobby.lobbyId,
+            lobbyName: l.lobby.lobbyName,
+            players: l.lobby.players,
         },
-        player: lobby.player,
+        player: l.player,
     });
-});
-
-router.post("/join", (req, res) => {
-    const {
-        lobbyId,
-        username,
-        password,
-        socketId,
-    } = req.body;
-
-    try {
-        const lobby = lobbyManager.joinLobby(
-            lobbyId,
-            password,
-            username,
-            socketId
-        );
-
-        res.json({
-            lobby: {
-                lobbyId: lobby.lobby.lobbyId,
-                lobbyName: lobby.lobby.lobbyName,
-                players: lobby.lobby.players,
-            },
-            player: lobby.player,
-        });
-
-    } catch(error) {
-
-        res.status(400).json({
-            message: error instanceof Error
-                ? error.message
-                : "Unbekannter Fehler"
-        });
-
-    }
 });
 
 router.get("/:id", (req, res) => {

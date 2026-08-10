@@ -40,20 +40,15 @@ io.on("connection", (socket) => {
         socket.id
     );
 
-    socket.on("joinLobby", ({lobbyId, username, password}) => {
+    socket.on("joinLobby", ({lobbyId, username, password, id}) => {
         try {
-            const result = lobbyManager.joinLobby(lobbyId, password, username, socket.id);
-            
+            const result = lobbyManager.joinLobby(lobbyId, password, username, socket.id, id);
             socket.join(lobbyId);
 
-            io.to(lobbyId).emit(
-                "lobbyUpdated",
-                result.lobby
-            );
+            io.to(lobbyId).emit("lobbyUpdated", result.lobby);
 
-            socket.emit("joinedLobby", {
-                playerId: result.player.id
-            });
+            socket.emit("joinedLobby", result.player);
+
             } catch(error) {
                 socket.emit(
                     "lobbyError",
@@ -69,7 +64,7 @@ io.on("connection", (socket) => {
     );
 
     socket.on("disconnect", () => {
-        const lobby = lobbyManager.leaveLobby(socket.id);
+        const lobby = lobbyManager.disconnectPlayer(socket.id);
 
         if (lobby) {
             io.to(lobby.lobbyId).emit("lobbyUpdated", lobby);
@@ -86,11 +81,3 @@ httpServer.listen(PORT, () => {
         `Server läuft auf Port ${PORT}`
     );
 });
-
-// app.listen(PORT, () => {
-
-//     console.log(
-//         `Server läuft auf Port ${PORT}`
-//     );
-
-// });

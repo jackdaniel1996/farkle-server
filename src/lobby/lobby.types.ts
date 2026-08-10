@@ -12,5 +12,7 @@ export interface Lobby {
 
 export interface Player {
     id: string;
+    socketId: string | undefined;
     username: string;
+    connected: boolean;
 }
