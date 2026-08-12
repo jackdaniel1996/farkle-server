@@ -1,25 +1,41 @@
-import { GameState } from "./types";
+import { GamePlayer, GameState } from "./types";
 
 
 export class GameEngine {
+    private state: GameState;
 
-    private state: GameState = {
-        dice: [1, 1, 1, 1, 1, 1],
-        currentPlayer: 0
-    };
-
+    constructor(players: GamePlayer[]) {
+        this.state = {
+            status: "playing",
+            players,
+            currentPlayerId: players[0].id,
+            dice: [],
+            turnScore: 0,
+            rolled: false,
+        };
+    }
 
     getState(): GameState {
         return this.state;
     }
 
+    rollDice() {        
 
-    rollDice() {
+    }
 
-        this.state.dice = this.state.dice.map(() =>
-            Math.floor(Math.random() * 6) + 1
+    nextPlayer() {
+        const gameState = this.state;
+        let currentIndex = gameState.players.findIndex(
+            player => player.id === gameState.currentPlayerId
         );
+        
+        if(currentIndex < 0) {
+            currentIndex = 0;
+        }
 
+        const nextIndex = (currentIndex + 1) % gameState.players.length;
+
+        gameState.currentPlayerId = gameState.players[nextIndex].id;
     }
 
 }

@@ -1,9 +1,11 @@
 import { GameEngine } from "../game/game.engine";
+import { GamePlayer } from "../game/types";
 import { Lobby, Player } from "./lobby.types";
 import { Server } from "socket.io";
 
 export class LobbyManager {
     private lobbies = new Map<string, Lobby>();
+    private games = new Map<string, GameEngine>();
     private io?: Server | undefined;
 
     constructor(io: Server | undefined) {
@@ -24,13 +26,20 @@ export class LobbyManager {
             connected: false,
         };
 
+        const gamePlayer: GamePlayer = {
+            id: player.id,
+            username: player.username,
+            score: 0,
+            connected: player.connected,
+        }
+
         const lobby: Lobby = {
             lobbyId: lobbyId,
             lobbyName: name,
             password,
             players: [],
             status: 'waiting',
-            game: new GameEngine()
+            game: new GameEngine([gamePlayer])
         };
 
         this.lobbies.set(
@@ -146,7 +155,18 @@ export class LobbyManager {
             return;
         }
 
+        const gamePlayers = lobby.players.map((p: Player) => ({
+            id: p.id,
+            username: p.username,
+            score: 0,
+            connected: p.connected,
+        }));
+
+        const game = new GameEngine(gamePlayers);
+        this.games.set(lobbyId, game);
+
         lobby.status = 'playing';
+        lobby.game = game;
 
         this.io.to(lobbyId).emit('gameStarted', lobby);
     }

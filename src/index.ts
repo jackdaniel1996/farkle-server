@@ -20,7 +20,7 @@ const io = new Server(httpServer, {
 });
 
 const lm = new LobbyManager(io);
-const gameEngine = new GameEngine();
+// const gameEngine = new GameEngine();
 const PORT = 3000;
 
 app.use(cors({
@@ -34,7 +34,7 @@ app.get("/", (_, res) => {
     res.send("Hallo vom Server!");
 });
 
-app.use("/game", createGameRoutes(gameEngine));
+// app.use("/game", createGameRoutes(gameEngine));
 app.use("/lobby", createLobbyRoutes(lm));
 
 io.on("connection", (socket) => {
