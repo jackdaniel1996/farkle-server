@@ -1,30 +1,28 @@
 import { Router } from "express";
 import { GameEngine } from "../game/game.engine";
 
+export const createGameRoutes = (game: GameEngine) => {
+    const router = Router();
 
-const router = Router();
+    router.get("/", (_, res) => {
 
-const game = new GameEngine();
+        res.json(
+            game.getState()
+        );
 
-
-router.get("/", (_, res) => {
-
-    res.json(
-        game.getState()
-    );
-
-});
+    });
 
 
-router.post("/roll", (_, res) => {
+    router.post("/roll", (_, res) => {
 
-    game.rollDice();
+        game.rollDice();
 
-    res.json(
-        game.getState()
-    );
+        res.json(
+            game.getState()
+        );
 
-});
+    });
 
 
-export default router;
+    return router;
+};

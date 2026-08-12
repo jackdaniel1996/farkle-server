@@ -1,10 +1,11 @@
 import express from "express";
 import cors from "cors";
 import { createServer } from "http";
-import gameRoutes from "./routes/game.routes";
-import lobbyRoutes from "./routes/lobby.routes";
+import { createGameRoutes } from "./routes/game.routes";
 import { Server } from "socket.io";
-import { lobbyManager } from "./lobby/lobby.manager";
+import { LobbyManager } from "./lobby/lobby.manager";
+import { createLobbyRoutes } from "./routes/lobby.routes";
+import { GameEngine } from "./game/game.engine";
 
 const allowedOrigins = [
     "http://localhost:4200",
@@ -18,6 +19,8 @@ const io = new Server(httpServer, {
     }
 });
 
+const lm = new LobbyManager(io);
+const gameEngine = new GameEngine();
 const PORT = 3000;
 
 app.use(cors({
@@ -31,8 +34,8 @@ app.get("/", (_, res) => {
     res.send("Hallo vom Server!");
 });
 
-app.use("/game", gameRoutes);
-app.use("/lobby", lobbyRoutes);
+app.use("/game", createGameRoutes(gameEngine));
+app.use("/lobby", createLobbyRoutes(lm));
 
 io.on("connection", (socket) => {
     console.log(
@@ -42,7 +45,7 @@ io.on("connection", (socket) => {
 
     socket.on("joinLobby", ({lobbyId, username, password, id}) => {
         try {
-            const result = lobbyManager.joinLobby(lobbyId, password, username, socket.id, id);
+            const result = lm.joinLobby(lobbyId, password, username, socket.id, id);
             socket.join(lobbyId);
 
             io.to(lobbyId).emit("lobbyUpdated", result.lobby);
@@ -64,7 +67,7 @@ io.on("connection", (socket) => {
     );
 
     socket.on("disconnect", () => {
-        const lobby = lobbyManager.disconnectPlayer(socket.id);
+        const lobby = lm.disconnectPlayer(socket.id);
 
         if (lobby) {
             io.to(lobby.lobbyId).emit("lobbyUpdated", lobby);
@@ -73,6 +76,16 @@ io.on("connection", (socket) => {
             "Spieler getrennt:",
             socket.id
         );
+    });
+
+    socket.on('startGame', ({ lobbyId }) => {
+        try {
+            lm.startGame(lobbyId, socket.id);
+        } catch (error) {
+            socket.emit("gameError", {
+                message: "Das Spiel kann nicht gestartet werden."
+            });
+        }
     });
 });
 

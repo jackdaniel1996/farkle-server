@@ -6,6 +6,7 @@ export interface Lobby {
     password: string;
 
     players: Player[];
+    status: 'waiting' | 'playing' | 'finished';
 
     game: GameEngine;
 }

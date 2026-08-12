@@ -1,8 +1,14 @@
 import { GameEngine } from "../game/game.engine";
 import { Lobby, Player } from "./lobby.types";
+import { Server } from "socket.io";
 
 export class LobbyManager {
     private lobbies = new Map<string, Lobby>();
+    private io?: Server | undefined;
+
+    constructor(io: Server | undefined) {
+        this.io = io;
+    }
 
     createLobby(
         name: string,
@@ -23,6 +29,7 @@ export class LobbyManager {
             lobbyName: name,
             password,
             players: [],
+            status: 'waiting',
             game: new GameEngine()
         };
 
@@ -47,7 +54,7 @@ export class LobbyManager {
         playerId?: string | undefined
     ): { lobby: Lobby; player: Player } {
         const lobby = this.lobbies.get(lobbyId);
-
+        console.log('lobbies', this.lobbies.values())
         if (!lobby) {
             throw new Error("Lobby existiert nicht");
         }
@@ -131,6 +138,16 @@ export class LobbyManager {
             .toUpperCase();
 
     }
-}
 
-export const lobbyManager = new LobbyManager();
+    startGame(lobbyId: string, socketId: string) {
+        const lobby = this.getLobby(lobbyId);
+
+        if (!lobby || !this.io) {
+            return;
+        }
+
+        lobby.status = 'playing';
+
+        this.io.to(lobbyId).emit('gameStarted', lobby);
+    }
+}
