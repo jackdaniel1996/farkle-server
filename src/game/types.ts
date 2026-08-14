@@ -13,9 +13,10 @@ export interface GamePlayer {
     score: number;
     connected: boolean;
 }
-
+export type DiceValue = 1 | 2 | 3 | 4 | 5 | 6;
 export interface Dice {
     id: number;
-    value: number;
+    value: DiceValue;
     selected: boolean;
+    selectable: boolean;
 }

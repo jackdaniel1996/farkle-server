@@ -100,8 +100,28 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("selectDice", ({lobbyId, selectedDice}) => {
-        
+    socket.on("selectDice", ({lobbyId, diceId}) => {
+        try {
+            lm.selectDice(lobbyId, diceId, socket.id);
+        } catch (error) {
+            socket.emit("gameError", {
+                message: error instanceof Error
+                    ? error.message
+                    : "Fehler beim Würfel auswählen"
+            });
+        }
+    })
+
+    socket.on("unselectDice", ({lobbyId, diceId}) => {
+         try {
+            lm.unselectDice(lobbyId, diceId, socket.id);
+        } catch (error) {
+            socket.emit("gameError", {
+                message: error instanceof Error
+                    ? error.message
+                    : "Fehler beim Würfel abwählen"
+            });
+        }
     })
 });
 

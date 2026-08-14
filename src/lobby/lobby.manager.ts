@@ -174,10 +174,7 @@ export class LobbyManager {
         this.io.to(lobbyId).emit('gameStarted', lobby);
     }
 
-    rollDice(lobbyId: string, socketId: string) {
-        const lobby = this.lobbies.get(lobbyId);
-        const game = this.games.get(lobbyId);
-
+    validateGameAction(lobby: Lobby | undefined, game: GameEngine | undefined, socketId: string) {
         if (!lobby) {
             throw new Error("Lobby existiert nicht");
         }
@@ -194,14 +191,56 @@ export class LobbyManager {
             throw new Error("Spieler nicht gefunden");
         }
 
-        if (lobby.game.currentPlayerId !== player.id) {
+        if (game.state.currentPlayerId !== player.id) {
             throw new Error("Du bist nicht am Zug");
         }
 
-        lobby.game = game.rollDice();
-
-        this.io?.to(lobbyId).emit("diceRolled", lobby);
-
-        return lobby;
+        return player;
     }
+
+    rollDice(lobbyId: string, socketId: string) {
+        const lobby = this.lobbies.get(lobbyId);
+        const game = this.games.get(lobbyId);
+
+        this.validateGameAction(lobby, game, socketId);
+        if (!game) {
+            throw new Error("Spiel existiert nicht");
+        }
+
+        game.rollDice();
+
+        this.io?.to(lobbyId).emit("diceRolled", game.getState());
+
+        return game.getState();
+    }
+
+    selectDice(lobbyId: string, diceId: number, socketId: string) {
+        const lobby = this.lobbies.get(lobbyId);
+        const game = this.games.get(lobbyId);
+        this.validateGameAction(lobby, game, socketId);
+        if (!game) {
+            throw new Error("Spiel existiert nicht");
+        }
+
+        game.selectDice(diceId);
+        this.io?.to(lobbyId).emit("diceSelection", game.getState());
+        
+        return game.getState();
+    }
+    
+    unselectDice(lobbyId: string, diceId: number, socketId: string) {
+        const lobby = this.lobbies.get(lobbyId);
+        const game = this.games.get(lobbyId);
+        this.validateGameAction(lobby, game, socketId);
+        if (!game) {
+            throw new Error("Spiel existiert nicht");
+        }
+
+        game.unselectDice(diceId);
+        this.io?.to(lobbyId).emit("diceSelection", game.getState());
+
+        return game.getState();
+    }
+
+    
 }
