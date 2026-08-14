@@ -87,6 +87,22 @@ io.on("connection", (socket) => {
             });
         }
     });
+
+    socket.on("rollDice", ({ lobbyId }) => {
+        try {
+            lm.rollDice(lobbyId, socket.id);
+        } catch (error) {
+            socket.emit("gameError", {
+                message: error instanceof Error
+                    ? error.message
+                    : "Fehler beim Würfeln"
+            });
+        }
+    });
+
+    socket.on("selectDice", ({lobbyId, selectedDice}) => {
+        
+    })
 });
 
 httpServer.listen(PORT, () => {

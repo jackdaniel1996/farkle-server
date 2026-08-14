@@ -33,13 +33,15 @@ export class LobbyManager {
             connected: player.connected,
         }
 
+        const game = new GameEngine([gamePlayer]);
+
         const lobby: Lobby = {
             lobbyId: lobbyId,
             lobbyName: name,
             password,
             players: [],
             status: 'waiting',
-            game: new GameEngine([gamePlayer])
+            game: game.state
         };
 
         this.lobbies.set(
@@ -166,8 +168,40 @@ export class LobbyManager {
         this.games.set(lobbyId, game);
 
         lobby.status = 'playing';
-        lobby.game = game;
+        lobby.game = game.state;
+        console.log('lobby-game', game)
 
         this.io.to(lobbyId).emit('gameStarted', lobby);
+    }
+
+    rollDice(lobbyId: string, socketId: string) {
+        const lobby = this.lobbies.get(lobbyId);
+        const game = this.games.get(lobbyId);
+
+        if (!lobby) {
+            throw new Error("Lobby existiert nicht");
+        }
+
+        if (!game) {
+            throw new Error("Spiel existiert nicht");
+        }
+
+        const player = lobby.players.find(
+            player => player.socketId === socketId
+        );
+
+        if (!player) {
+            throw new Error("Spieler nicht gefunden");
+        }
+
+        if (lobby.game.currentPlayerId !== player.id) {
+            throw new Error("Du bist nicht am Zug");
+        }
+
+        lobby.game = game.rollDice();
+
+        this.io?.to(lobbyId).emit("diceRolled", lobby);
+
+        return lobby;
     }
 }

@@ -1,4 +1,5 @@
 import { GameEngine } from "../game/game.engine";
+import { GameState } from "../game/types";
 
 export interface Lobby {
     lobbyId: string;
@@ -8,7 +9,7 @@ export interface Lobby {
     players: Player[];
     status: 'waiting' | 'playing' | 'finished';
 
-    game: GameEngine;
+    game: GameState;
 }
 
 export interface Player {
