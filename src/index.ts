@@ -122,7 +122,31 @@ io.on("connection", (socket) => {
                     : "Fehler beim Würfel abwählen"
             });
         }
-    })
+    });
+
+    socket.on("scoreDice", ({lobbyId, dice}) => {
+         try {
+            lm.scoreDice(lobbyId, dice, socket.id);
+        } catch (error) {
+            socket.emit("gameError", {
+                message: error instanceof Error
+                    ? error.message
+                    : "Fehler beim Punkten"
+            });
+        }
+    });
+
+    socket.on("endTurn", ({lobbyId, dice}) => {
+         try {
+            lm.endTurn(lobbyId, dice, socket.id);
+        } catch (error) {
+            socket.emit("gameError", {
+                message: error instanceof Error
+                    ? error.message
+                    : "Fehler beenden des Zuges"
+            });
+        }
+    });
 });
 
 httpServer.listen(PORT, () => {

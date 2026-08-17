@@ -5,6 +5,7 @@ export interface GameState {
     dice: Dice[];
     turnScore: number;    
     rolled: boolean;
+    farkled: boolean;
 }
 
 export interface GamePlayer {
@@ -19,4 +20,5 @@ export interface Dice {
     value: DiceValue;
     selected: boolean;
     selectable: boolean;
+    scored: boolean;
 }

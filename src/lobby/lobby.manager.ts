@@ -1,5 +1,5 @@
 import { GameEngine } from "../game/game.engine";
-import { GamePlayer } from "../game/types";
+import { Dice, GamePlayer } from "../game/types";
 import { Lobby, Player } from "./lobby.types";
 import { Server } from "socket.io";
 
@@ -207,6 +207,10 @@ export class LobbyManager {
             throw new Error("Spiel existiert nicht");
         }
 
+        if(game.state.farkled) {
+            throw new Error("Gefarkled, kann nicht erneut würfeln")
+        }
+
         game.rollDice();
 
         this.io?.to(lobbyId).emit("diceRolled", game.getState());
@@ -242,5 +246,36 @@ export class LobbyManager {
         return game.getState();
     }
 
+    scoreDice(lobbyId: string, diceIds: number[], socketId: string) {
+        const lobby = this.lobbies.get(lobbyId);
+        const game = this.games.get(lobbyId);
+        this.validateGameAction(lobby, game, socketId);
+        if (!game) {
+            throw new Error("Spiel existiert nicht");
+        }
+
+        // score selected dice
+        game.scoreDice(diceIds);
+        // roll again
+        game.rollDice();
+        this.io?.to(lobbyId).emit("diceRolled", game.getState());
+
+        return game.getState();
+    }
     
+    endTurn(lobbyId: string, diceIds: number[], socketId: string) {
+        const lobby = this.lobbies.get(lobbyId);
+        const game = this.games.get(lobbyId);
+        this.validateGameAction(lobby, game, socketId);
+        if (!game) {
+            throw new Error("Spiel existiert nicht");
+        }
+        // score selected dice
+        game.scoreDice(diceIds);
+        // end turn
+        game.endTurn()
+        this.io?.to(lobbyId).emit("turnEnded", game.getState());
+
+        return game.getState();
+    }
 }

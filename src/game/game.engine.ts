@@ -3,22 +3,24 @@ import { Dice, DiceValue, GamePlayer, GameState } from "./types";
 
 export class GameEngine {
     public state: GameState;
+    private readonly defaultDiceState: Dice[] = [
+        {id: 0, value: 1, selected: false, selectable: false, scored: false },
+        {id: 1, value: 2, selected: false, selectable: false, scored: false },
+        {id: 2, value: 3, selected: false, selectable: false, scored: false },
+        {id: 3, value: 4, selected: false, selectable: false, scored: false },
+        {id: 4, value: 5, selected: false, selectable: false, scored: false },
+        {id: 5, value: 6, selected: false, selectable: false, scored: false },
+    ];
 
     constructor(players: GamePlayer[]) {
         this.state = {
             status: "playing",
             players,
             currentPlayerId: players[0].id,
-            dice: [
-                {id: 0, value: 1, selected: false, selectable: false },
-                {id: 1, value: 2, selected: false, selectable: false },
-                {id: 2, value: 3, selected: false, selectable: false },
-                {id: 3, value: 4, selected: false, selectable: false },
-                {id: 4, value: 5, selected: false, selectable: false },
-                {id: 5, value: 6, selected: false, selectable: false },
-            ],
+            dice: this.defaultDiceState,
             turnScore: 0,
             rolled: false,
+            farkled: false,
         };
     }
 
@@ -62,14 +64,20 @@ export class GameEngine {
     }
 
     updateSelectableDice() {
-        // Zunächst alle Würfel nicht auswählbar machen
-        this.state.dice = this.state.dice.map(dice => ({
-            ...dice,
-            selectable: false
-        }));
+        // Zunächst alle noch nicht gewerteten Würfel nicht auswählbar machen
+        this.state.dice = this.state.dice.map(dice => {
+            if(!dice.scored) {
+                return {
+                    ...dice,
+                    selectable: false
+                }
+            } else {
+                return dice
+            }
+        });
 
         // Werte des aktuellen Wurfs
-        const availableDice = this.state.dice.filter(dice => !dice.selected);
+        const availableDice = this.state.dice.filter(dice => !dice.selected && !dice.scored);
         const values = availableDice.map(dice => dice.value);
 
         // Straße
@@ -116,6 +124,13 @@ export class GameEngine {
                     return dice;
                 });
             }
+        }
+
+        // Nichts auswählbar -> gefarkled, turnscore wieder 0
+        const rolledDice = this.state.dice.filter(dice => !dice.selected && !dice.scored);
+        if(rolledDice.length > 0 && rolledDice.every(dice => !dice.selectable)) {
+            this.state.farkled = true;
+            this.state.turnScore = 0;
         }
     }
 
@@ -182,28 +197,28 @@ export class GameEngine {
         return this.state;
     }
 
-    private calculateScore(): number {
-        const selectedDice = this.state.dice.filter(dice => dice.selected);
+    // TODO: Allgemein umbauen sodass man die funktion auch aufrufen kann, wenn der Würfel ausgewählt wird um den punktestand direkt zu aktuallisieren.
+    scoreDice(dice: number[]): GameState {
+        const selectedDice = this.state.dice.filter(d => dice.includes(d.id));
 
         if (selectedDice.length === 0) {
-            return 0;
+            return this.state;
         }
 
+        let score = 0;
         const values = selectedDice.map(dice => dice.value);
 
         // Straße
         if (this.isStraight(values)) {
-            return 1500;
+            score = 1500;
         }
 
         // Drei Paare
         if (this.isThreePairs(values)) {
-            return 750;
+            score = 750;
         }
 
         const counts = this.getDiceCounts(selectedDice);
-
-        let score = 0;
 
         for (const [value, count] of counts) {
             // Drilling oder mehr
@@ -229,7 +244,32 @@ export class GameEngine {
             }
         }
 
-        return score;
+        this.state.turnScore += score;
+
+        this.state.dice = this.state.dice.map((d) => {
+            if(dice.includes(d.id)) {
+                return {
+                    ...d,
+                    scored: true,
+                };
+            } else {
+                return d
+            }
+        })
+
+        // alle Würfel gewertet:
+        const allDiceScored = this.state.dice.every(d => d.scored === true);
+        if(allDiceScored) {
+           this.state.dice = this.state.dice.map((dice) => {
+                return {
+                    ...dice,
+                    selected: false,
+                    scored: false,
+                }
+            })
+        }
+
+        return this.state;
     }
 
     unselectDice(diceId: number): GameState {
@@ -243,6 +283,34 @@ export class GameEngine {
                 return dice;
             }
         })
+
+        return this.state;
+    }
+
+    endTurn() {
+        // score points:
+        this.state.players = this.state.players.map((p) => {
+            if(p.id === this.state.currentPlayerId) {
+                return {
+                    ...p,
+                    score: p.score += this.state.turnScore,
+                };
+            } else {
+                return p;
+            }
+        });
+        
+        // reset states:
+        this.state.turnScore = 0;    
+        this.state.rolled = false;
+        this.state.farkled = false;
+
+        // reset dice:
+        this.state.dice = this.defaultDiceState;
+
+        // next player
+        this.nextPlayer();
+        console.log('turn ended')
 
         return this.state;
     }
