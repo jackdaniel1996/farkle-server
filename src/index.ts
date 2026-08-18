@@ -124,9 +124,9 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("scoreDice", ({lobbyId, dice}) => {
+    socket.on("scoreDice", ({lobbyId}) => {
          try {
-            lm.scoreDice(lobbyId, dice, socket.id);
+            lm.scoreDice(lobbyId, socket.id);
         } catch (error) {
             socket.emit("gameError", {
                 message: error instanceof Error
@@ -136,9 +136,9 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("endTurn", ({lobbyId, dice}) => {
+    socket.on("endTurn", ({lobbyId}) => {
          try {
-            lm.endTurn(lobbyId, dice, socket.id);
+            lm.endTurn(lobbyId, socket.id);
         } catch (error) {
             socket.emit("gameError", {
                 message: error instanceof Error

@@ -246,7 +246,7 @@ export class LobbyManager {
         return game.getState();
     }
 
-    scoreDice(lobbyId: string, diceIds: number[], socketId: string) {
+    scoreDice(lobbyId: string, socketId: string) {
         const lobby = this.lobbies.get(lobbyId);
         const game = this.games.get(lobbyId);
         this.validateGameAction(lobby, game, socketId);
@@ -254,8 +254,6 @@ export class LobbyManager {
             throw new Error("Spiel existiert nicht");
         }
 
-        // score selected dice
-        // game.scoreDice();
         // roll again
         game.rollDice();
         this.io?.to(lobbyId).emit("diceRolled", game.getState());
@@ -263,15 +261,14 @@ export class LobbyManager {
         return game.getState();
     }
     
-    endTurn(lobbyId: string, diceIds: number[], socketId: string) {
+    endTurn(lobbyId: string, socketId: string) {
         const lobby = this.lobbies.get(lobbyId);
         const game = this.games.get(lobbyId);
         this.validateGameAction(lobby, game, socketId);
         if (!game) {
             throw new Error("Spiel existiert nicht");
         }
-        // score selected dice
-        // game.scoreDice(diceIds);
+
         // end turn
         game.endTurn()
         this.io?.to(lobbyId).emit("turnEnded", game.getState());
