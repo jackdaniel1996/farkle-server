@@ -44,18 +44,47 @@ export class GameEngine {
     }
 
     rollDice(): GameState {
+        // punkte sichern
+        this.turnBaseScore = this.state.turnScore;
+        // bereits ausgewählte würfel als gepunktet werten
         this.state.dice = this.state.dice.map((dice, index) => {
-            if(dice.selected) return dice;
-            else {
+            if(dice.selected) { 
+                return {
+                    ...dice,
+                    scored: true,
+                };
+            } else {
+                return dice;
+            }
+        });
+
+        // wenn alle Würfel gewertet wurden zurücksetzen
+        const allDiceScored = this.state.dice.every(d => d.scored === true);
+        if(allDiceScored) {
+            this.state.dice = this.state.dice.map((dice) => {
+                return {
+                    ...dice,
+                    selected: false,
+                    scored: false,
+                }
+            })
+        }
+
+        // nicht ausgewählte würfel
+        this.state.dice = this.state.dice.map((dice, index) => {
+            if(!dice.selected && !dice.scored) {
                 return {
                     ...dice,
                     id: dice.id,
                     value: Math.floor(Math.random() * 6) + 1 as DiceValue,
                     selected: dice.selected
-                 }
+                }
+            } else {
+                return dice;
             }
         });
 
+        // auswählbare würfel markieren
         this.updateSelectableDice();
 
         this.state.rolled = true;
@@ -193,32 +222,50 @@ export class GameEngine {
         }
 
         dice.selected = true;
+        this.updateTurnScore();
 
         return this.state;
     }
 
-    // TODO: Allgemein umbauen sodass man die funktion auch aufrufen kann, wenn der Würfel ausgewählt wird um den punktestand direkt zu aktuallisieren.
-    scoreDice(dice: number[]): GameState {
+    unselectDice(diceId: number): GameState {
+        this.state.dice = this.state.dice.map((dice) => {
+            if(dice.id === diceId) {
+                return {
+                    ...dice,
+                    selected: false,
+                }
+            } else {
+                return dice;
+            }
+        })
+
+       this.updateTurnScore();
+
+        return this.state;
+    }
+
+    calculateDiceScore(dice: number[]): number {
         const selectedDice = this.state.dice.filter(d => dice.includes(d.id));
 
         if (selectedDice.length === 0) {
-            return this.state;
+            return 0;
         }
 
-        let score = 0;
         const values = selectedDice.map(dice => dice.value);
 
         // Straße
         if (this.isStraight(values)) {
-            score = 1500;
+            return 1500;
         }
 
         // Drei Paare
         if (this.isThreePairs(values)) {
-            score = 750;
+            return 750;
         }
 
         const counts = this.getDiceCounts(selectedDice);
+
+        let score = 0;
 
         for (const [value, count] of counts) {
             // Drilling oder mehr
@@ -244,47 +291,21 @@ export class GameEngine {
             }
         }
 
-        this.state.turnScore += score;
-
-        this.state.dice = this.state.dice.map((d) => {
-            if(dice.includes(d.id)) {
-                return {
-                    ...d,
-                    scored: true,
-                };
-            } else {
-                return d
-            }
-        })
-
-        // alle Würfel gewertet:
-        const allDiceScored = this.state.dice.every(d => d.scored === true);
-        if(allDiceScored) {
-           this.state.dice = this.state.dice.map((dice) => {
-                return {
-                    ...dice,
-                    selected: false,
-                    scored: false,
-                }
-            })
-        }
-
-        return this.state;
+        return score;
     }
 
-    unselectDice(diceId: number): GameState {
-        this.state.dice = this.state.dice.map((dice) => {
-            if(dice.id === diceId) {
-                return {
-                    ...dice,
-                    selected: false,
-                }
-            } else {
-                return dice;
-            }
-        })
+    // alle punkte die bis zum beenden der runde gesammelt wurden.
+    private turnBaseScore = 0;
+    // punkte der ausgewählten würfel
+    private roundscore = 0;
+    private updateTurnScore(): void {
+        const selectedDiceIds = this.state.dice
+            .filter(d => !d.scored && d.selected)
+            .map(d => d.id);
 
-        return this.state;
+        this.roundscore = this.calculateDiceScore(selectedDiceIds);
+
+        this.state.turnScore = this.turnBaseScore + this.roundscore;
     }
 
     endTurn() {
@@ -304,6 +325,8 @@ export class GameEngine {
         this.state.turnScore = 0;    
         this.state.rolled = false;
         this.state.farkled = false;
+        this.roundscore = 0;
+        this.turnBaseScore = 0;
 
         // reset dice:
         this.state.dice = this.defaultDiceState;

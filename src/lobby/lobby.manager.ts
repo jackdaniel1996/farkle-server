@@ -255,7 +255,7 @@ export class LobbyManager {
         }
 
         // score selected dice
-        game.scoreDice(diceIds);
+        // game.scoreDice();
         // roll again
         game.rollDice();
         this.io?.to(lobbyId).emit("diceRolled", game.getState());
@@ -271,7 +271,7 @@ export class LobbyManager {
             throw new Error("Spiel existiert nicht");
         }
         // score selected dice
-        game.scoreDice(diceIds);
+        // game.scoreDice(diceIds);
         // end turn
         game.endTurn()
         this.io?.to(lobbyId).emit("turnEnded", game.getState());
