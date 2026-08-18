@@ -12,15 +12,16 @@ export class GameEngine {
         {id: 5, value: 6, selected: false, selectable: false, scored: false },
     ];
 
-    constructor(players: GamePlayer[]) {
+    constructor(players: GamePlayer[], maxPoints: number) {
         this.state = {
-            status: "playing",
+            status: "waiting",
             players,
             currentPlayerId: players[0].id,
             dice: this.defaultDiceState,
             turnScore: 0,
             rolled: false,
             farkled: false,
+            maxPoints: maxPoints,
         };
     }
 
@@ -44,6 +45,7 @@ export class GameEngine {
     }
 
     rollDice(): GameState {
+        this.state.status = 'playing';
         // punkte sichern
         this.turnBaseScore = this.state.turnScore;
         // bereits ausgewählte würfel als gepunktet werten

@@ -78,9 +78,9 @@ io.on("connection", (socket) => {
         );
     });
 
-    socket.on('startGame', ({ lobbyId }) => {
+    socket.on('startGame', ({ lobbyId, maxPoints }) => {
         try {
-            lm.startGame(lobbyId, socket.id);
+            lm.startGame(lobbyId, socket.id, maxPoints);
         } catch (error) {
             socket.emit("gameError", {
                 message: "Das Spiel kann nicht gestartet werden."

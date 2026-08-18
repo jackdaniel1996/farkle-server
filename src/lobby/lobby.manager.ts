@@ -33,7 +33,7 @@ export class LobbyManager {
             connected: player.connected,
         }
 
-        const game = new GameEngine([gamePlayer]);
+        const game = new GameEngine([gamePlayer], 10000);
 
         const lobby: Lobby = {
             lobbyId: lobbyId,
@@ -88,6 +88,10 @@ export class LobbyManager {
                 player: existingPlayer
             };
         } else {
+            if(lobby.status === 'playing') {
+                this.disconnectPlayer(socketId);
+                throw new Error("Spiel läuft bereits")
+            }
             // create id when new player joins lobby
             let player: Player = {
                 id: playerId ? playerId : crypto.randomUUID(),
@@ -150,7 +154,7 @@ export class LobbyManager {
 
     }
 
-    startGame(lobbyId: string, socketId: string) {
+    startGame(lobbyId: string, socketId: string, maxPoints: number = 10000) {
         const lobby = this.getLobby(lobbyId);
 
         if (!lobby || !this.io) {
@@ -164,7 +168,7 @@ export class LobbyManager {
             connected: p.connected,
         }));
 
-        const game = new GameEngine(gamePlayers);
+        const game = new GameEngine(gamePlayers, maxPoints);
         this.games.set(lobbyId, game);
 
         lobby.status = 'playing';

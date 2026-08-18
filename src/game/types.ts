@@ -6,6 +6,7 @@ export interface GameState {
     turnScore: number;    
     rolled: boolean;
     farkled: boolean;
+    maxPoints: number;
 }
 
 export interface GamePlayer {
