@@ -147,6 +147,18 @@ io.on("connection", (socket) => {
             });
         }
     });
+
+    socket.on("restartGame", ({lobbyId}) => {
+         try {
+            lm.restartGame(lobbyId, socket.id);
+        } catch (error) {
+            socket.emit("gameError", {
+                message: error instanceof Error
+                    ? error.message
+                    : "Fehler beenden des Zuges"
+            });
+        }
+    });
 });
 
 httpServer.listen(PORT, () => {

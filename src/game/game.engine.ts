@@ -322,6 +322,13 @@ export class GameEngine {
                 return p;
             }
         });
+
+        // check for win:
+        const winner = this.state.players.find(player => player.score >= this.state.maxPoints);
+        if(winner) {
+            this.finishGame();
+            return this.state;
+        }
         
         // reset states:
         this.state.turnScore = 0;    
@@ -336,6 +343,38 @@ export class GameEngine {
         // next player
         this.nextPlayer();
         console.log('turn ended')
+
+        return this.state;
+    }
+
+    private finishGame() {
+        this.state.status = 'finished';
+
+        return this.state;
+    }
+
+    restartGame() {
+        // reset points
+        this.state.players = this.state.players.map((p) => {
+            return {
+                ...p,
+                score: 0,
+            };            
+        });
+
+        // reset states
+        this.state.status = 'playing';
+        this.state.turnScore = 0;    
+        this.state.rolled = false;
+        this.state.farkled = false;
+        this.roundscore = 0;
+        this.turnBaseScore = 0;
+
+        // reset dice:
+        this.state.dice = this.defaultDiceState;
+
+        // let the next player start
+        this.nextPlayer();
 
         return this.state;
     }

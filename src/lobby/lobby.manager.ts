@@ -199,6 +199,10 @@ export class LobbyManager {
             throw new Error("Du bist nicht am Zug");
         }
 
+        if(game.state.status === 'finished') {
+            throw new Error("Das Spiel ist vorbei")
+        }
+
         return player;
     }
 
@@ -274,8 +278,26 @@ export class LobbyManager {
         }
 
         // end turn
-        game.endTurn()
+        game.endTurn();
         this.io?.to(lobbyId).emit("turnEnded", game.getState());
+
+        return game.getState();
+    }
+
+    restartGame(lobbyId: string, socketId: string) {
+        const lobby = this.lobbies.get(lobbyId);
+        const game = this.games.get(lobbyId);
+
+        if (!lobby) {
+            throw new Error("Lobby existiert nicht");
+        }
+
+        if (!game) {
+            throw new Error("Spiel existiert nicht");
+        }
+
+        game.restartGame();
+        this.io?.to(lobbyId).emit("gameRestartet", game.getState());
 
         return game.getState();
     }
