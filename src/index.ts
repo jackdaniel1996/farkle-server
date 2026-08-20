@@ -43,7 +43,7 @@ io.on("connection", (socket) => {
         socket.id
     );
 
-    socket.on("joinLobby", ({lobbyId, username, password, id}) => {
+    socket.on("joinLobby", ({lobbyId, username, password, id}, callback) => {
         try {
             const result = lm.joinLobby(lobbyId, password, username, socket.id, id);
             socket.join(lobbyId);
@@ -52,16 +52,17 @@ io.on("connection", (socket) => {
 
             socket.emit("joinedLobby", result.player);
 
+            callback?.({
+                success: true
+            });
+
             } catch(error) {
-                socket.emit(
-                    "lobbyError",
-                    {
-                        message:
-                            error instanceof Error
-                                ? error.message
-                                : "Fehler"
-                    }
-                );
+                callback?.({
+                    success: false,
+                    error: error instanceof Error
+                        ? error.message
+                        : "Fehler beim beitreten der Lobby."
+                });
             }
         }
     );
@@ -78,84 +79,114 @@ io.on("connection", (socket) => {
         );
     });
 
-    socket.on('startGame', ({ lobbyId, maxPoints }) => {
+    socket.on('startGame', ({ lobbyId, maxPoints }, callback) => {
         try {
             lm.startGame(lobbyId, socket.id, maxPoints);
+            callback?.({
+                success: true
+            });
         } catch (error) {
-            socket.emit("gameError", {
-                message: "Das Spiel kann nicht gestartet werden."
+            callback?.({
+                success: false,
+                error: error instanceof Error
+                    ? error.message
+                    : "Das Spiel kann nicht gestartet werden."
             });
         }
     });
 
-    socket.on("rollDice", ({ lobbyId }) => {
+    socket.on("rollDice", ({ lobbyId }, callback) => {
         try {
             lm.rollDice(lobbyId, socket.id);
+            callback?.({
+                success: true
+            });
         } catch (error) {
-            socket.emit("gameError", {
-                message: error instanceof Error
+            callback?.({
+                success: false,
+                error: error instanceof Error
                     ? error.message
                     : "Fehler beim Würfeln"
             });
         }
     });
 
-    socket.on("selectDice", ({lobbyId, diceId}) => {
+    socket.on("selectDice", ({lobbyId, diceId}, callback) => {
         try {
             lm.selectDice(lobbyId, diceId, socket.id);
+            callback?.({
+                success: true
+            });
         } catch (error) {
-            socket.emit("gameError", {
-                message: error instanceof Error
+            callback?.({
+                success: false,
+                error: error instanceof Error
                     ? error.message
                     : "Fehler beim Würfel auswählen"
             });
         }
     })
 
-    socket.on("unselectDice", ({lobbyId, diceId}) => {
-         try {
+    socket.on("unselectDice", ({lobbyId, diceId}, callback) => {
+        try {
             lm.unselectDice(lobbyId, diceId, socket.id);
+            callback?.({
+                success: true
+            });
         } catch (error) {
-            socket.emit("gameError", {
-                message: error instanceof Error
+            callback?.({
+                success: false,
+                error: error instanceof Error
                     ? error.message
                     : "Fehler beim Würfel abwählen"
             });
         }
     });
 
-    socket.on("scoreDice", ({lobbyId}) => {
-         try {
+    socket.on("scoreDice", ({lobbyId}, callback) => {
+        try {
             lm.scoreDice(lobbyId, socket.id);
+            callback?.({
+                success: true
+            });
         } catch (error) {
-            socket.emit("gameError", {
-                message: error instanceof Error
+            callback?.({
+                success: false,
+                error: error instanceof Error
                     ? error.message
                     : "Fehler beim Punkten"
             });
         }
     });
 
-    socket.on("endTurn", ({lobbyId}) => {
-         try {
+    socket.on("endTurn", ({lobbyId}, callback) => {
+        try {
             lm.endTurn(lobbyId, socket.id);
+            callback?.({
+                success: true
+            });
         } catch (error) {
-            socket.emit("gameError", {
-                message: error instanceof Error
+            callback?.({
+                success: false,
+                error: error instanceof Error
                     ? error.message
-                    : "Fehler beenden des Zuges"
+                    : "Fehler beim beenden des Zuges"
             });
         }
     });
 
-    socket.on("restartGame", ({lobbyId}) => {
-         try {
+    socket.on("restartGame", ({lobbyId}, callback) => {
+        try {
             lm.restartGame(lobbyId, socket.id);
+            callback?.({
+                success: true
+            });
         } catch (error) {
-            socket.emit("gameError", {
-                message: error instanceof Error
+            callback?.({
+                success: false,
+                error: error instanceof Error
                     ? error.message
-                    : "Fehler beenden des Zuges"
+                    : "Fehler beim Neustart des Spiels"
             });
         }
     });

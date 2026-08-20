@@ -91,7 +91,7 @@ export class LobbyManager {
         } else {
             if(lobby.status === 'playing') {
                 this.disconnectPlayer(socketId);
-                throw new Error("Spiel läuft bereits")
+                throw new Error("Spiel läuft bereits. Beitreten nicht mehr möglich.")
             }
             // create id when new player joins lobby
             let player: Player = {
