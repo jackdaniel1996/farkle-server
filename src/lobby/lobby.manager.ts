@@ -31,6 +31,7 @@ export class LobbyManager {
             username: player.username,
             score: 0,
             connected: player.connected,
+            turns: 0,
         }
 
         const game = new GameEngine([gamePlayer], 10000);
@@ -166,6 +167,7 @@ export class LobbyManager {
             username: p.username,
             score: 0,
             connected: p.connected,
+            turns: 0,
         }));
 
         const game = new GameEngine(gamePlayers, maxPoints);

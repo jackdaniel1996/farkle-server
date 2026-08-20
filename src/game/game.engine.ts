@@ -317,6 +317,7 @@ export class GameEngine {
                 return {
                     ...p,
                     score: p.score += this.state.turnScore,
+                    turns: p.turns+1
                 };
             } else {
                 return p;
@@ -325,7 +326,9 @@ export class GameEngine {
 
         // check for win:
         const winner = this.state.players.find(player => player.score >= this.state.maxPoints);
-        if(winner) {
+        const equalTurns = this.state.players.every(player => player.turns === this.state.players[0].turns);
+        
+        if(winner && equalTurns) {
             this.finishGame();
             return this.state;
         }
@@ -359,6 +362,7 @@ export class GameEngine {
             return {
                 ...p,
                 score: 0,
+                turns: 0,
             };            
         });
 

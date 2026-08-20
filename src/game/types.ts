@@ -14,6 +14,7 @@ export interface GamePlayer {
     username: string;
     score: number;
     connected: boolean;
+    turns: number;
 }
 export type DiceValue = 1 | 2 | 3 | 4 | 5 | 6;
 export interface Dice {
